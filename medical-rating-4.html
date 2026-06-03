@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مقيّم المصادر الطبية</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { min-height:100vh; background:linear-gradient(160deg,#020817 0%,#0f172a 50%,#020817 100%); font-family:'Cairo',sans-serif; color:#f1f5f9; padding:32px 16px; }
+  input,textarea,button { font-family:'Cairo',sans-serif; }
+  input[type=range] { width:100%; cursor:pointer; height:6px; }
+  .container { max-width:900px; margin:0 auto; }
+  .header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:32px; }
+  h1 { font-size:28px; font-weight:900; background:linear-gradient(135deg,#a5b4fc,#818cf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .subtitle { color:#64748b; font-size:13px; margin-top:4px; }
+  .btn-row { display:flex; gap:10px; flex-wrap:wrap; }
+  .btn { border:none; border-radius:12px; padding:10px 22px; color:#fff; font-weight:800; font-size:14px; cursor:pointer; transition:all .2s; }
+  .btn-primary { background:linear-gradient(135deg,#6366f1,#4f46e5); }
+  .btn-primary:hover { opacity:.85; }
+  .btn-green { background:linear-gradient(135deg,#059669,#047857); }
+  .btn-tg { background:linear-gradient(135deg,#0088cc,#006699); }
+  .btn-cancel { background:#334155; }
+  .btn:disabled { background:#334155; cursor:not-allowed; opacity:.7; }
+
+  .form-card { background:linear-gradient(135deg,#1e293b,#0f172a); border:1px solid #6366f144; border-radius:20px; padding:28px 24px; margin-bottom:28px; box-shadow:0 0 40px #6366f115; }
+  .form-card h2 { font-size:18px; font-weight:800; color:#a5b4fc; margin-bottom:20px; }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:20px; }
+  label { font-size:12px; color:#94a3b8; display:block; margin-bottom:6px; }
+  .field input,.field textarea { width:100%; background:#0f172a; border:1px solid #334155; border-radius:10px; padding:10px 14px; color:#f1f5f9; font-size:14px; outline:none; resize:vertical; }
+  .field input:focus,.field textarea:focus { border-color:#6366f1; }
+  .media-btns { display:flex; gap:8px; }
+  .media-btn { flex:1; padding:9px 0; border-radius:10px; border:1px solid #334155; background:transparent; color:#64748b; font-weight:700; font-size:13px; cursor:pointer; transition:all .2s; }
+  .media-btn.active { border-color:#6366f1; background:#6366f122; color:#a5b4fc; }
+  .scores-header { font-size:13px; color:#94a3b8; margin-bottom:12px; font-weight:600; }
+  .score-total { color:#6366f1; font-weight:800; margin-right:10px; }
+  .scores-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px 24px; margin-bottom:16px; }
+  .score-row { display:flex; align-items:center; gap:10px; }
+  .score-val { width:36px; height:36px; border-radius:8px; border:2px solid #334155; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; color:#64748b; min-width:36px; transition:all .2s; background:#1e293b; }
+  .depth-label { font-size:11px; font-weight:600; min-width:90px; }
+
+  /* Links field */
+  .links-area { margin-bottom:20px; }
+  .links-area label { margin-bottom:8px; }
+  .link-row { display:flex; gap:8px; margin-bottom:8px; align-items:center; }
+  .link-row input { flex:1; background:#0f172a; border:1px solid #334155; border-radius:10px; padding:9px 14px; color:#f1f5f9; font-size:13px; outline:none; direction:ltr; }
+  .link-row input:focus { border-color:#0ea5e9; }
+  .link-del { background:transparent; border:none; color:#475569; cursor:pointer; font-size:16px; padding:4px; transition:color .2s; }
+  .link-del:hover { color:#ef4444; }
+  .add-link-btn { background:#0ea5e922; border:1px solid #0ea5e955; color:#7dd3fc; border-radius:8px; padding:6px 14px; font-size:12px; font-weight:700; cursor:pointer; transition:all .2s; }
+  .add-link-btn:hover { background:#0ea5e933; }
+
+  /* Telegram modal */
+  .modal-overlay { position:fixed; inset:0; background:#00000088; display:flex; align-items:center; justify-content:center; z-index:1000; padding:16px; }
+  .modal { background:#1e293b; border:1px solid #334155; border-radius:20px; padding:28px; max-width:620px; width:100%; max-height:85vh; display:flex; flex-direction:column; gap:14px; }
+  .modal h3 { font-size:16px; font-weight:800; color:#a5b4fc; }
+  .tg-preview { background:#0f172a; border:1px solid #334155; border-radius:12px; padding:16px; font-size:13px; color:#cbd5e1; white-space:pre-wrap; overflow-y:auto; flex:1; direction:rtl; text-align:right; line-height:2; max-height:360px; }
+  .tg-preview.loading { color:#475569; font-style:italic; text-align:center; padding-top:40px; }
+  .modal-btns { display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; }
+  .btn-copy { background:linear-gradient(135deg,#0088cc,#006699); }
+  .btn-ai { background:linear-gradient(135deg,#7c3aed,#5b21b6); }
+  .btn-close-modal { background:#334155; }
+
+  /* Topic input */
+  .topic-row { display:flex; gap:10px; align-items:center; }
+  .topic-row input { flex:1; background:#0f172a; border:1px solid #334155; border-radius:10px; padding:10px 14px; color:#f1f5f9; font-size:14px; outline:none; }
+  .topic-row input:focus { border-color:#0088cc; }
+  .ai-badge { font-size:11px; color:#a78bfa; background:#7c3aed22; border:1px solid #7c3aed55; border-radius:6px; padding:2px 8px; white-space:nowrap; }
+
+  .filter-bar { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; align-items:center; }
+  .filter-bar span { font-size:12px; color:#64748b; }
+  .filter-btn { padding:6px 14px; border-radius:8px; border:1px solid #334155; background:transparent; color:#64748b; font-size:12px; font-weight:700; cursor:pointer; transition:all .2s; }
+  .filter-btn.active-sort { border-color:#6366f1; background:#6366f122; color:#a5b4fc; }
+  .filter-btn.active-type { border-color:#0ea5e9; background:#0ea5e922; color:#7dd3fc; }
+  .filter-spacer { margin-right:auto; display:flex; gap:8px; }
+
+  .cards-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(400px,1fr)); gap:16px; }
+  .source-card { background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%); border:1px solid #334155; border-radius:16px; padding:20px 22px; position:relative; transition:transform .2s,box-shadow .2s; }
+  .source-card:hover { transform:translateY(-2px); box-shadow:0 8px 32px #6366f130; }
+  .rank-badge { position:absolute; top:-10px; right:16px; color:#fff; border-radius:20px; padding:2px 12px; font-size:12px; font-weight:800; }
+  .card-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
+  .card-name { font-size:18px; font-weight:800; color:#f1f5f9; margin-bottom:3px; }
+  .badges { display:flex; gap:8px; flex-wrap:wrap; }
+  .badge { border-radius:6px; padding:2px 8px; font-size:11px; }
+  .badge-subject { background:#6366f122; border:1px solid #6366f155; color:#a5b4fc; }
+  .badge-video { background:#0ea5e922; border:1px solid #0ea5e955; color:#7dd3fc; font-weight:600; }
+  .badge-audio { background:#8b5cf622; border:1px solid #8b5cf655; color:#c4b5fd; font-weight:600; }
+  .card-score { text-align:center; }
+  .score-big { font-size:28px; font-weight:900; }
+  .score-max { font-size:14px; color:#64748b; font-weight:400; }
+  .score-pct { font-size:11px; color:#64748b; }
+  .progress-bg { background:#0f172a; border-radius:99px; height:6px; margin-bottom:12px; overflow:hidden; }
+  .progress-fill { height:100%; border-radius:99px; transition:width .6s ease; }
+  .criteria-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px 16px; margin-bottom:12px; }
+  .criteria-row { display:flex; justify-content:space-between; align-items:center; }
+  .criteria-label { font-size:11px; color:#94a3b8; }
+  .criteria-val { font-size:12px; font-weight:700; }
+  .meta-row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:6px; }
+  .meta-item { font-size:11px; color:#64748b; }
+  .card-links { display:flex; flex-direction:column; gap:3px; margin-top:6px; }
+  .card-link { font-size:11px; color:#7dd3fc; text-decoration:none; direction:ltr; text-align:left; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .card-link:hover { text-decoration:underline; }
+  .card-notes { background:#0f172a; border-radius:8px; padding:8px 12px; font-size:12px; color:#94a3b8; font-style:italic; margin-top:8px; }
+  .del-btn { position:absolute; top:16px; left:16px; background:transparent; border:none; cursor:pointer; color:#475569; font-size:16px; padding:4px; line-height:1; transition:color .2s; }
+  .del-btn:hover { color:#ef4444; }
+  .empty-state { text-align:center; padding:60px 20px; color:#334155; }
+  .empty-state .icon { font-size:48px; margin-bottom:12px; }
+  .empty-state .title { font-size:16px; font-weight:700; color:#475569; }
+  .empty-state .sub { font-size:13px; margin-top:6px; }
+  .copied-toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#22c55e; color:#fff; font-weight:800; padding:10px 24px; border-radius:12px; font-size:14px; opacity:0; transition:opacity .3s; pointer-events:none; z-index:9999; }
+  .copied-toast.show { opacity:1; }
+  @media (max-width:600px) { .grid-2,.grid-3,.scores-grid,.cards-grid { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div>
+      <h1>مقيّم المصادر الطبية</h1>
+      <p class="subtitle" id="subtitle">0 مصدر مضاف · رتّب وقارن بدقة</p>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-tg" id="tgBtn" onclick="openTgModal()" style="display:none">✈️ رسالة تليجرام</button>
+      <button class="btn btn-green" id="exportBtn" onclick="exportImage()" style="display:none">🖼 تصدير صورة</button>
+      <button class="btn btn-primary" id="toggleFormBtn" onclick="toggleForm()">+ إضافة مصدر</button>
+    </div>
+  </div>
+
+  <!-- Add Form -->
+  <div class="form-card" id="formCard" style="display:none">
+    <h2>إضافة مصدر جديد</h2>
+    <div class="grid-2">
+      <div class="field"><label>اسم الدكتور / المصدر *</label><input type="text" id="fName" placeholder="د. محمد أحمد..."></div>
+      <div class="field"><label>الموضوع / التوبيك</label><input type="text" id="fSubject" placeholder="Hemorrhage & Shock..."></div>
+    </div>
+    <div class="grid-3">
+      <div class="field">
+        <label>نوع المصدر</label>
+        <div class="media-btns">
+          <button class="media-btn active" id="btnVideo" onclick="setMedia('video')">🎬 فيديو</button>
+          <button class="media-btn" id="btnAudio" onclick="setMedia('audio')">🎧 صوت</button>
+        </div>
+      </div>
+      <div class="field"><label>الساعات</label><input type="number" id="fHours" placeholder="0" min="0"></div>
+      <div class="field"><label>الدقائق</label><input type="number" id="fMins" placeholder="0" min="0" max="59"></div>
+    </div>
+    <div class="scores-header">التقييم التفصيلي <span class="score-total" id="liveTotal">0/80</span></div>
+    <div class="scores-grid" id="slidersContainer"></div>
+    <div class="field" style="margin-bottom:20px"><label>ملاحظات (اختياري)</label><textarea id="fNotes" rows="2" placeholder="أي تعليق إضافي..."></textarea></div>
+
+    <!-- Links -->
+    <div class="links-area">
+      <label>🔗 روابط تليجرام (اختياري)</label>
+      <div id="linksContainer"></div>
+      <button class="add-link-btn" onclick="addLinkField()">+ إضافة رابط</button>
+    </div>
+
+    <button class="btn btn-primary" onclick="addSource()">✓ إضافة المصدر</button>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar" id="filterBar" style="display:none">
+    <span>ترتيب حسب:</span>
+    <button class="filter-btn active-sort" onclick="setSort('total')" id="s_total">الإجمالي</button>
+    <button class="filter-btn" onclick="setSort('examFocus')" id="s_examFocus">الامتحان</button>
+    <button class="filter-btn" onclick="setSort('contentDepth')" id="s_contentDepth">العمق</button>
+    <button class="filter-btn" onclick="setSort('efficiency')" id="s_efficiency">الوقت</button>
+    <div class="filter-spacer">
+      <button class="filter-btn active-type" onclick="setFilter('all')" id="f_all">الكل</button>
+      <button class="filter-btn" onclick="setFilter('video')" id="f_video">🎬 فيديو</button>
+      <button class="filter-btn" onclick="setFilter('audio')" id="f_audio">🎧 صوت</button>
+    </div>
+  </div>
+
+  <div id="cardsGrid" class="cards-grid"></div>
+  <div id="emptyState" class="empty-state">
+    <div class="icon">📚</div>
+    <div class="title">لا يوجد مصادر بعد</div>
+    <div class="sub">اضغط "+ إضافة مصدر" للبدء</div>
+  </div>
+</div>
+
+<!-- Telegram Modal -->
+<div class="modal-overlay" id="tgModal" style="display:none" onclick="if(event.target===this)closeTgModal()">
+  <div class="modal">
+    <div style="display:flex;align-items:center;gap:10px">
+      <h3>✈️ رسالة تليجرام بالعامية</h3>
+    </div>
+    <div class="topic-row">
+      <input type="text" id="topicInput" placeholder="اسم الموضوع (مثلاً: Hemorrhage & Shock)">
+    </div>
+    <div class="tg-preview" id="tgPreview">اكتب اسم الموضوع واضغط "توليد بالـ AI" ✨</div>
+    <div class="modal-btns">
+      <button class="btn btn-close-modal" onclick="closeTgModal()">إغلاق</button>
+      <button class="btn btn-copy" id="copyBtn" onclick="copyTgMsg()" style="display:none">📋 نسخ</button>
+      <button class="btn btn-ai" id="aiBtn" onclick="generateAiMsg()">✍️ توليد الرسالة</button>
+    </div>
+  </div>
+</div>
+
+<div class="copied-toast" id="toast">✅ تم النسخ!</div>
+
+<script>
+const CRITERIA = [
+  { key:"explanation",   label:"جودة الشرح" },
+  { key:"comprehension", label:"سهولة الفهم" },
+  { key:"examFocus",     label:"التركيز على الامتحان" },
+  { key:"depth",         label:"عمق الفهم" },
+  { key:"organization",  label:"تنظيم المحتوى" },
+  { key:"efficiency",    label:"الاختصار وتوفير الوقت" },
+  { key:"material",      label:"جودة الماتيريال" },
+  { key:"contentDepth",  label:"عمق المحتوى" },
+];
+const DEPTH_LABELS = {1:"مراجعة سريعة",2:"مراجعة سريعة",3:"مراجعة سريعة",4:"شرح متوازن",5:"شرح متوازن",6:"شرح متوازن",7:"شرح متوازن",8:"تأسيس وفهم عميق",9:"تأسيس وفهم عميق",10:"تأسيس وفهم عميق"};
+const DEPTH_COLOR = {1:"#f97316",2:"#f97316",3:"#f97316",4:"#eab308",5:"#eab308",6:"#eab308",7:"#eab308",8:"#22c55e",9:"#22c55e",10:"#22c55e"};
+const NUM_EMOJI = ["1⃣","2⃣","3⃣","4⃣","5⃣","6⃣","7⃣","8⃣","9⃣","🔟"];
+
+let sources = [], currentMedia = "video", sortKey = "total", filterType = "all";
+let scores = {}, linkFields = [];
+
+// ── Sliders ──
+function buildSliders() {
+  scores = Object.fromEntries(CRITERIA.map(c => [c.key, 0]));
+  document.getElementById("slidersContainer").innerHTML = CRITERIA.map(c => `
+    <div>
+      <span style="font-size:12px;color:#94a3b8;display:block;margin-bottom:6px">${c.label}</span>
+      <div class="score-row">
+        <input type="range" min="0" max="10" step="1" value="0" style="flex:1;accent-color:#6366f1" oninput="updateSlider('${c.key}',this.value)" id="sl_${c.key}">
+        <div class="score-val" id="sv_${c.key}">0</div>
+        ${c.key==='contentDepth'?`<span class="depth-label" id="dl_contentDepth" style="display:none"></span>`:''}
+      </div>
+    </div>`).join('');
+  updateLiveTotal();
+}
+buildSliders();
+
+function updateSlider(key, val) {
+  val = Number(val); scores[key] = val;
+  const sv = document.getElementById("sv_"+key);
+  sv.textContent = val;
+  if (key==="contentDepth") {
+    const c = val>0?DEPTH_COLOR[val]:"#64748b";
+    sv.style.color=c; sv.style.borderColor=val>0?c:"#334155"; sv.style.background=val>0?c+"22":"#1e293b";
+    document.getElementById("sl_contentDepth").style.accentColor=c;
+    const dl=document.getElementById("dl_contentDepth");
+    if(val>0){dl.textContent=DEPTH_LABELS[val];dl.style.color=c;dl.style.display="";}else{dl.style.display="none";}
+  } else if(val>0){sv.style.color="#6366f1";sv.style.borderColor="#6366f1";sv.style.background="#6366f122";}
+  else{sv.style.color="#64748b";sv.style.borderColor="#334155";sv.style.background="#1e293b";}
+  updateLiveTotal();
+}
+function updateLiveTotal() {
+  const t=Object.values(scores).reduce((a,b)=>a+b,0);
+  document.getElementById("liveTotal").textContent=t+"/"+(CRITERIA.length*10);
+}
+
+// ── Links ──
+function addLinkField(val="") {
+  const id = Date.now();
+  linkFields.push(id);
+  const div = document.createElement("div");
+  div.className = "link-row"; div.id = "lr_"+id;
+  div.innerHTML = `<input type="url" placeholder="https://t.me/..." value="${val}" id="li_${id}"><button class="link-del" onclick="removeLinkField(${id})">✕</button>`;
+  document.getElementById("linksContainer").appendChild(div);
+}
+function removeLinkField(id) {
+  linkFields = linkFields.filter(x=>x!==id);
+  document.getElementById("lr_"+id)?.remove();
+}
+function getLinks() {
+  return linkFields.map(id=>document.getElementById("li_"+id)?.value.trim()).filter(Boolean);
+}
+
+// ── Media ──
+function setMedia(type) {
+  currentMedia=type;
+  document.getElementById("btnVideo").classList.toggle("active",type==="video");
+  document.getElementById("btnAudio").classList.toggle("active",type==="audio");
+}
+
+// ── Form ──
+let formOpen=false;
+function toggleForm() {
+  formOpen=!formOpen;
+  document.getElementById("formCard").style.display=formOpen?"block":"none";
+  document.getElementById("toggleFormBtn").textContent=formOpen?"✕ إلغاء":"+ إضافة مصدر";
+  document.getElementById("toggleFormBtn").className=formOpen?"btn btn-cancel":"btn btn-primary";
+  if(formOpen) resetForm();
+}
+function resetForm() {
+  ["fName","fSubject","fHours","fMins","fNotes"].forEach(id=>document.getElementById(id).value="");
+  currentMedia="video"; setMedia("video"); buildSliders();
+  linkFields=[]; document.getElementById("linksContainer").innerHTML="";
+}
+function addSource() {
+  const name=document.getElementById("fName").value.trim();
+  if(!name) return;
+  sources.push({ id:Date.now(), name, subject:document.getElementById("fSubject").value.trim(), mediaType:currentMedia, hours:document.getElementById("fHours").value, mins:document.getElementById("fMins").value, notes:document.getElementById("fNotes").value.trim(), links:getLinks(), scores:{...scores} });
+  toggleForm(); render();
+}
+function deleteSource(id) { sources=sources.filter(s=>s.id!==id); render(); }
+function getTotal(s) { return Object.values(s.scores).reduce((a,b)=>a+b,0); }
+
+// ── Sort / Filter ──
+function setSort(key) {
+  sortKey=key;
+  document.querySelectorAll("[id^='s_']").forEach(b=>b.classList.remove("active-sort"));
+  document.getElementById("s_"+key).classList.add("active-sort");
+  render();
+}
+function setFilter(type) {
+  filterType=type;
+  document.querySelectorAll("[id^='f_']").forEach(b=>b.classList.remove("active-type"));
+  document.getElementById("f_"+type).classList.add("active-type");
+  render();
+}
+
+// ── Telegram AI message ──
+function getSortedSources() {
+  const filtered = sources.filter(s => filterType === "all" || s.mediaType === filterType);
+  filtered.sort((a,b) => { if(sortKey==="total") return getTotal(b)-getTotal(a); return (b.scores[sortKey]||0)-(a.scores[sortKey]||0); });
+  return filtered;
+}
+
+function buildDataSummary(topic) {
+  const maxTotal = CRITERIA.length * 10;
+  const filtered = getSortedSources();
+  let txt = topic ? `الموضوع: ${topic}\n\n` : "";
+  filtered.forEach((s, i) => {
+    const total = getTotal(s);
+    const pct = Math.round((total / maxTotal) * 100);
+    const dv = s.scores.contentDepth;
+    txt += `المصدر ${i+1}: ${s.name}`;
+    if (s.subject) txt += ` (${s.subject})`;
+    txt += ` — ${s.mediaType === "video" ? "فيديو" : "صوت"}`;
+    const dur = [s.hours?s.hours+'h':'', s.mins?s.mins+'m':''].filter(Boolean).join(' ');
+    if (dur) txt += ` — ${dur}`;
+    txt += `\nالدرجة الكلية: ${total}/${maxTotal} (${pct}%)\n`;
+    CRITERIA.forEach(c => { txt += `  ${c.label}: ${s.scores[c.key]}/10\n`; });
+    if (dv > 0) txt += `  مستوى المحتوى: ${DEPTH_LABELS[dv]}\n`;
+    if (s.notes) txt += `  ملاحظة: ${s.notes}\n`;
+    if (s.links && s.links.length) txt += `  الروابط: ${s.links.join(" | ")}\n`;
+    txt += "\n";
+  });
+  return txt;
+}
+
+function describeSource(s) {
+  const ex  = s.scores.explanation;
+  const com = s.scores.comprehension;
+  const exam= s.scores.examFocus;
+  const dep = s.scores.depth;
+  const eff = s.scores.efficiency;
+  const mat = s.scores.material;
+  const cd  = s.scores.contentDepth;
+  const total = getTotal(s);
+  const pct = Math.round((total / (CRITERIA.length * 10)) * 100);
+
+  // شرح
+  const sharhMap = [
+    [9, "شرحه ممتاز وواضح جداً"],
+    [7, "شرحه كويس ومفهوم"],
+    [5, "الشرح معقول"],
+    [3, "الشرح مش أحسن حاجة"],
+    [0, "الشرح ضعيف"],
+  ];
+  const sharh = sharhMap.find(([min]) => ex >= min)[1];
+
+  // فهم
+  const fahmMap = [
+    [9, "وبيوصّل المعلومة بسهولة"],
+    [7, "وسهل الفهم"],
+    [5, ""],
+    [0, "بس محتاج تركيز"],
+  ];
+  const fahm = fahmMap.find(([min]) => com >= min)[1];
+
+  // امتحان
+  let examPart = "";
+  if (exam >= 8) examPart = "مركّز على الامتحان جداً";
+  else if (exam >= 5) examPart = "فيه تركيز كويس على الامتحان";
+  else if (exam >= 3) examPart = "التركيز على الامتحان محدود";
+  else examPart = "مش مركّز على الامتحان";
+
+  // وقت
+  let timePart = "";
+  if (eff >= 8) timePart = "ومش هياخد منك وقت كتير";
+  else if (eff >= 5) timePart = "والوقت معقول";
+  else if (eff >= 3) timePart = "بس هياخد منك وقت";
+  else timePart = "وطويل جداً";
+
+  // عمق
+  let depthPart = "";
+  if (cd >= 8) depthPart = "مناسب للفهم العميق والتأسيس";
+  else if (cd >= 4) depthPart = "مناسب للشرح المتوازن";
+  else if (cd >= 1) depthPart = "مناسب للمراجعة السريعة قبل الامتحان";
+
+  // ماتيريال
+  let matPart = "";
+  if (mat >= 8) matPart = "الماتيريال بتاعته ممتاز";
+  else if (mat >= 5) matPart = "الماتيريال كويس";
+  else if (mat >= 3) matPart = "الماتيريال عادي";
+
+  // تركيب الجملة
+  let sentence = sharh;
+  if (fahm) sentence += " " + fahm;
+  sentence += "، " + examPart + " " + timePart + ".";
+  if (depthPart) sentence += " " + depthPart + ".";
+  if (matPart) sentence += " " + matPart + ".";
+
+  return sentence;
+}
+
+function generateAiMsg() {
+  const filtered = getSortedSources();
+  if (!filtered.length) return;
+  const topic = document.getElementById("topicInput").value.trim();
+  const preview = document.getElementById("tgPreview");
+  const copyBtn = document.getElementById("copyBtn");
+
+  const NUM_EMOJI_STR = ["1⃣","2⃣","3⃣","4⃣","5⃣","6⃣","7⃣","8⃣","9⃣","🔟"];
+  const sep = "〰〰〰〰〰〰〰〰〰〰〰";
+
+  let msg = "";
+  if (topic) msg += `⚕️ ${topic}\n\n`;
+
+  filtered.forEach((s, i) => {
+    const num = NUM_EMOJI_STR[i] || `${i+1}.`;
+    const dur = [s.hours ? s.hours+"h" : "", s.mins ? s.mins+"m" : ""].filter(Boolean).join("");
+    const mediaEmoji = s.mediaType === "video" ? "🎬" : "🎧";
+    msg += `${num} ${mediaEmoji} ${s.name}`;
+    if (s.subject) msg += ` — ${s.subject}`;
+    msg += "\n";
+    msg += describeSource(s) + "\n";
+    if (s.notes) msg += `➖ ${s.notes}\n`;
+    if (dur) msg += `⏳${dur}\n`;
+    if (s.links && s.links.length) msg += s.links.map(l => `📎 ${l}`).join("\n") + "\n";
+    if (i < filtered.length - 1) msg += sep + "\n";
+  });
+
+  if (topic) {
+    const tag = "#" + topic.replace(/[^a-zA-Z0-9\u0600-\u06FF]/g,"_").replace(/_+/g,"_").replace(/^_|_$/g,"");
+    msg += `\n${tag}`;
+  }
+
+  preview.className = "tg-preview";
+  preview.textContent = msg.trim();
+  copyBtn.style.display = "inline-block";
+}
+
+function openTgModal() {
+  document.getElementById("tgModal").style.display = "flex";
+  document.getElementById("tgPreview").className = "tg-preview";
+  document.getElementById("tgPreview").textContent = "اضغط \"توليد الرسالة\" ✍️";
+  document.getElementById("copyBtn").style.display = "none";
+  const sorted = getSortedSources();
+  const topicInput = document.getElementById("topicInput");
+  if (!topicInput.value && sorted.length) {
+    topicInput.value = sorted[0].subject || "";
+  }
+}
+function closeTgModal() { document.getElementById("tgModal").style.display = "none"; }
+function copyTgMsg() {
+  const text = document.getElementById("tgPreview").textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const t = document.getElementById("toast"); t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2000);
+  });
+}
+
+// ── Render cards ──
+function scoreColor(pct){return pct>=80?"#22c55e":pct>=60?"#eab308":"#f97316";}
+function progressGrad(pct){return pct>=80?"linear-gradient(90deg,#22c55e,#16a34a)":pct>=60?"linear-gradient(90deg,#eab308,#ca8a04)":"linear-gradient(90deg,#f97316,#ea580c)";}
+function criteriaColor(v){return v>=8?"#22c55e":v>=5?"#eab308":v>=1?"#f97316":"#475569";}
+function rankBg(i){return i===0?"linear-gradient(135deg,#f59e0b,#d97706)":i===1?"linear-gradient(135deg,#94a3b8,#64748b)":i===2?"linear-gradient(135deg,#b45309,#92400e)":"#334155";}
+
+function render() {
+  const maxTotal=CRITERIA.length*10;
+  const filtered=sources.filter(s=>filterType==="all"||s.mediaType===filterType);
+  filtered.sort((a,b)=>{ if(sortKey==="total") return getTotal(b)-getTotal(a); return (b.scores[sortKey]||0)-(a.scores[sortKey]||0); });
+
+  document.getElementById("subtitle").textContent=sources.length+" مصدر مضاف · رتّب وقارن بدقة";
+  document.getElementById("exportBtn").style.display=sources.length>0?"inline-block":"none";
+  document.getElementById("tgBtn").style.display=sources.length>0?"inline-block":"none";
+  document.getElementById("filterBar").style.display=sources.length>0?"flex":"none";
+  document.getElementById("emptyState").style.display=filtered.length===0?"block":"none";
+
+  document.getElementById("cardsGrid").innerHTML=filtered.map((s,i)=>{
+    const total=getTotal(s), pct=Math.round((total/maxTotal)*100), dv=s.scores.contentDepth;
+    return `
+      <div class="source-card">
+        <div class="rank-badge" style="background:${rankBg(i)}">#${i+1}</div>
+        <div class="card-top">
+          <div>
+            <div class="card-name">${s.name}</div>
+            <div class="badges">
+              ${s.subject?`<span class="badge badge-subject">${s.subject}</span>`:""}
+              <span class="badge ${s.mediaType==='video'?'badge-video':'badge-audio'}">${s.mediaType==='video'?'🎬 فيديو':'🎧 صوت'}</span>
+            </div>
+          </div>
+          <div class="card-score">
+            <div class="score-big" style="color:${scoreColor(pct)}">${total}<span class="score-max">/${maxTotal}</span></div>
+            <div class="score-pct">${pct}%</div>
+          </div>
+        </div>
+        <div class="progress-bg"><div class="progress-fill" style="width:${pct}%;background:${progressGrad(pct)}"></div></div>
+        <div class="criteria-grid">
+          ${CRITERIA.map(c=>`<div class="criteria-row"><span class="criteria-label">${c.label}</span><span class="criteria-val" style="color:${criteriaColor(s.scores[c.key])}">${s.scores[c.key]}/10</span></div>`).join("")}
+        </div>
+        <div class="meta-row">
+          ${(s.hours||s.mins)?`<span class="meta-item">⏱ ${[s.hours?s.hours+'h':'',s.mins?s.mins+'m':''].filter(Boolean).join(' ')}</span>`:""}
+          ${dv>0?`<span class="meta-item" style="color:${DEPTH_COLOR[dv]};font-weight:600">● ${DEPTH_LABELS[dv]}</span>`:""}
+        </div>
+        ${s.links&&s.links.length?`<div class="card-links">${s.links.map(l=>`<a class="card-link" href="${l}" target="_blank">🔗 ${l}</a>`).join("")}</div>`:""}
+        ${s.notes?`<div class="card-notes">"${s.notes}"</div>`:""}
+        <button class="del-btn" onclick="deleteSource(${s.id})">✕</button>
+      </div>`;
+  }).join("");
+}
+
+async function exportImage() {
+  const btn=document.getElementById("exportBtn"); btn.textContent="⏳ جاري التصدير..."; btn.disabled=true;
+  try {
+    const canvas=await html2canvas(document.querySelector(".container"),{backgroundColor:"#020817",scale:2,useCORS:true,logging:false});
+    const link=document.createElement("a"); link.download="medical-sources-rating.png"; link.href=canvas.toDataURL("image/png"); link.click();
+  } finally { btn.textContent="🖼 تصدير صورة"; btn.disabled=false; }
+}
+
+render();
+</script>
+</body>
+</html>
